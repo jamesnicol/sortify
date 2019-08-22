@@ -48,43 +48,21 @@ const callback = (req, res) => {
   const code = req.query.code || null;
   const state = req.query.state || null;
   const storedState = req.cookies ? req.cookies[COOKIE_STATE_KEY] : null;
-
-  res.clearCookie(COOKIE_STATE_KEY);
-
-  const authOptions = {
-    url: 'https://accounts.spotify.com/api/token',
-    form: {
-      code,
-      redirect_uri: REDIRECT_URI,
-      grant_type: 'authorization_code'
-    },
-    headers: {
-      Authorization: `Basic ${clientAuthStr}`
-    },
-    json: true
-  };
-
-  request.post(authOptions, (error, response, body) => {
-    if (!error && response.statusCode === 200) {
-      const { access_token, refresh_token } = body;
-      // @TODO: store in user
-      // const options = {
-      //   url: 'https://api.spotify.com/v1/me',
-      //   headers: { Authorization: `Bearer ${access_token}` },
-      //   json: true
-      // };
-      // // use the access token to access the Spotify Web API
-      // request.get(options, (error, response, body) => {
-      //   console.log(body);
-      // });
-    } else {
-      res.redirect(
-        `/#${querystring.stringify({
-          error: 'invalid_token'
-        })}`
-      );
+  if (state === null || state !== storedState) {
+    res.redirect('/#' +
+      querystring.stringify({
+        error: 'state_mismatch'
+      }));
+  } else {
+    res.clearCookie(COOKIE_STATE_KEY);
+    const res = await spotify.callback();
+    if (!res){
+    res.redirect('/#' +
+      querystring.stringify({
+        error: 'invalid_token'
+      }));
     }
-  });
+  }
 };
 
 const refreshToken = (req, res) => {
@@ -93,7 +71,7 @@ const refreshToken = (req, res) => {
   const authOptions = {
     url: 'https://accounts.spotify.com/api/token',
     headers: {
-      Authorization: `Basic }`
+      Authorization: `Basic`
     },
     form: {
       grant_type: 'refresh_token',
