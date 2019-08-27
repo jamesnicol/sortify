@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const cookieSession = require('cookie-session');
+const cookieParser = require('cookie-parser');
 const routes = require('./routes');
 const errorHandler = require('./middleware/errorHandler');
 const authentication = require('./middleware/authentication');
@@ -10,12 +10,8 @@ const app = express();
 
 app.use(cors());
 app.use(helmet());
-app.use(
-  cookieSession({
-    name: 'spot-session',
-    secret: 'changemesecret'
-  })
-);
+// @TODO: security here?
+app.use(cookieParser());
 
 app.use(express.static(`${__dirname}/static`));
 

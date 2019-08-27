@@ -1,3 +1,4 @@
+const url = require('url');
 /**
  * Generates a random string containing numbers and letters
  * @param  {number} length The length of the string
@@ -13,4 +14,14 @@ module.exports.generateRandomString = length => {
     text += possible.charAt(Math.floor(Math.random() * possible.length));
   }
   return text;
+};
+
+/**
+ * @param  {Object} req
+ */
+module.exports.getFullHost = req => {
+  return url.format({
+    protocol: req.protocol,
+    host: req.get('host')
+  });
 };

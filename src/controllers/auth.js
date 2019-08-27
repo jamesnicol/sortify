@@ -10,25 +10,26 @@
 const querystring = require('querystring');
 const spotify = require('../services/spotify');
 
-const { generateRandomString } = require('../util');
+const { generateRandomString, getFullHost } = require('../util');
 const {
-  REDIRECT_URI,
   COOKIE_STATE_KEY,
   SPOTIFY_SCOPE,
-  SPOTIFY_CLIENT_ID
+  SPOTIFY_CLIENT_ID,
+  SPOTIFY_REDIRECT_ENDPOINT
 } = require('../../config');
 
 const login = (req, res) => {
   const state = generateRandomString(16);
   res.cookie(COOKIE_STATE_KEY, state);
 
+  const redirectUri = getFullHost(req) + SPOTIFY_REDIRECT_ENDPOINT;
   // your application requests authorization
   res.redirect(
     `https://accounts.spotify.com/authorize?${querystring.stringify({
       response_type: 'code',
       client_id: SPOTIFY_CLIENT_ID,
       scope: SPOTIFY_SCOPE,
-      redirect_uri: REDIRECT_URI,
+      redirect_uri: redirectUri,
       state
     })}`
   );
@@ -49,15 +50,17 @@ const callback = async (req, res) => {
   } else {
     const code = req.query.code || null;
     res.clearCookie(COOKIE_STATE_KEY);
-    const isAuth = await spotify.callback(code);
+    const redirectUri = getFullHost(req) + SPOTIFY_REDIRECT_ENDPOINT;
+    const isAuth = await spotify.callback(code, redirectUri);
     if (!isAuth) {
       res.redirect(
         `/#${querystring.stringify({
           error: 'invalid_token'
         })}`
       );
+    } else {
+      res.json({});
     }
-    res.json({});
   }
 };
 
