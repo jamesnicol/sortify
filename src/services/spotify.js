@@ -60,9 +60,9 @@ const callback = async (code, redirectUri) => {
     // User not constructor
     const user = new User({ spotifyId, accessToken, refreshToken });
     await user.save();
-    return true;
+    return spotifyId;
   } catch (err) {
-    return false;
+    return null;
   }
 };
 

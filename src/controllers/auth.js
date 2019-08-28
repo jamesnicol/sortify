@@ -13,6 +13,7 @@ const spotify = require('../services/spotify');
 const { generateRandomString, getFullHost } = require('../util');
 const {
   COOKIE_STATE_KEY,
+  COOKIE_USER_KEY,
   SPOTIFY_SCOPE,
   SPOTIFY_CLIENT_ID,
   SPOTIFY_REDIRECT_ENDPOINT
@@ -51,14 +52,15 @@ const callback = async (req, res) => {
     const code = req.query.code || null;
     res.clearCookie(COOKIE_STATE_KEY);
     const redirectUri = getFullHost(req) + SPOTIFY_REDIRECT_ENDPOINT;
-    const isAuth = await spotify.callback(code, redirectUri);
-    if (!isAuth) {
+    const userId = await spotify.callback(code, redirectUri);
+    if (!userId) {
       res.redirect(
         `/#${querystring.stringify({
           error: 'invalid_token'
         })}`
       );
     } else {
+      res.cookie(COOKIE_USER_KEY, userId);
       res.json({});
     }
   }
